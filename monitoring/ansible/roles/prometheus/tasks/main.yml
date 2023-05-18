@@ -1,0 +1,75 @@
+---
+- name: Update apt packages
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: "upgrade packages."
+  become: true
+  apt:
+    upgrade: "yes"   
+
+- name: Create Prometheus user
+  shell: |
+    useradd --no-create-home --shell /bin/false prometheus
+    sudo mkdir /etc/prometheus
+    sudo mkdir /var/lib/prometheus
+    sudo chown -R prometheus:prometheus /etc/prometheus
+    sudo chown -R prometheus:prometheus /var/lib/prometheus
+
+- name: Download file from a file path
+  get_url:
+    url: https://github.com/prometheus/prometheus/releases/download/v2.41.0/prometheus-2.41.0.linux-amd64.tar.gz
+    dest: ~/prometheus-2.41.0.linux-amd64.tar.gz
+
+- name: Extract file
+  unarchive:
+    src: ~/prometheus-2.41.0.linux-amd64.tar.gz
+    dest: ~/
+    remote_src: yes
+
+- name: Move Prometheus
+  shell: |
+    rm -rf prometheus-files
+    mv ~/prometheus-2.41.0.linux-amd64 prometheus-files    
+
+- name: Move files
+  shell: |
+    cp prometheus-files/prometheus /usr/local/bin
+    cp prometheus-files/promtool /usr/local/bin
+    chown prometheus:prometheus /etc/prometheus
+    chown prometheus:prometheus /var/lib/prometheus
+    cp -r prometheus-files/consoles /etc/prometheus
+    cp -r prometheus-files/console_libraries /etc/prometheus
+    sudo chown -R prometheus:prometheus /etc/prometheus/consoles
+    sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries
+
+- name: Copy Prometheus.yml
+  become: true
+  copy: 
+    src: prometheus.yml
+    dest: /etc/prometheus/
+
+- name: Copy Prometheus.service 
+  become: true
+  copy: 
+    src: prometheus.service
+    dest: /etc/systemd/system
+
+- name: Change ownership of service and config files
+  shell: |
+    chown prometheus:prometheus /etc/prometheus/prometheus.yml       
+    chown prometheus:prometheus /etc/systemd/system/prometheus.service  
+
+- name: Add aws keys in prometheus.yml
+  shell: |
+    # sed -i '' "s/AWS_SECRET_ACCESS_KEY_HERE/$AWS_SECRET_ACCESS_KEY/g" /etc/prometheus/prometheus.yml ## for mac
+    sed -i "s/AWS_DEFAULT_REGION_HERE/$AWS_DEFAULT_REGION/g" /etc/prometheus/prometheus.yml
+    sed -i "s/AWS_ACCESS_KEY_ID_HERE/$AWS_ACCESS_KEY_ID/g" /etc/prometheus/prometheus.yml
+    sed -i "s/AWS_SECRET_ACCESS_KEY_HERE/$AWS_SECRET_ACCESS_KEY/g" /etc/prometheus/prometheus.yml
+
+- name: Reload prometheus to register changes
+  shell: |
+    systemctl daemon-reload
+    sudo systemctl enable prometheus
+    systemctl start prometheus
+    systemctl status prometheus         

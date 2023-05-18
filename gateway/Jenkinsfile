@@ -1,0 +1,62 @@
+pipeline  {
+environment {
+        version ="${env.BUILD_ID}-${env.GIT_COMMIT}"
+}
+
+agent any
+  stages {
+
+    stage('reading properties from properties file') {
+        steps {
+            script {
+                def props = readProperties file: '/var/jenkins_home/workspace/creds/creds.properties' 
+                
+                env.registryCredential = props.registryCredential
+                env.registryUrl = props.registryUrl
+                env.NETWORK = props.NETWORK
+                env.gatewayDockerImage = props.gatewayDockerImage
+                env.gatewayServiceContainerName  = props.gatewayServiceContainerName 
+                env.eurekaHostZone = props.eurekaHostZone
+                env.gatewayPortMap = props.gatewayPortMap
+                env.configServerUrl = props.configServerUrl
+                env.eurekaHost = props.eurekaHost
+            }
+        }
+    }
+
+    stage('build') {
+      agent {
+            docker {
+                reuseNode true
+                image 'maven:3.8.6-jdk-11'
+            }
+      }
+      steps {
+          sh "cd gateway && mvn clean install -DskipTests"
+      }
+
+    }
+
+    stage('containerise') {
+      steps {
+          script  {
+                      app = docker.build("${gatewayDockerImage}:${version}", "./gateway")
+                      docker.withRegistry("${registryUrl}", "${registryCredential}") {
+                      pushOut =  app.push()
+                      }
+              }
+
+      }
+
+    }    
+
+    stage('deploy') {
+      steps {
+            sh 'docker container rm -f $gatewayServiceContainerName || true'
+            sh 'docker container run -d  --network $NETWORK --name $gatewayServiceContainerName  -e CONFIG_SERVER_URL=$configServerUrl -e EUREKA_HOST=$eurekaHost  -e EUREKA_HOST_ZONE=$eurekaHostZone -p $gatewayPortMap $gatewayDockerImage:${version} '
+                
+        }
+    }
+  }
+
+}

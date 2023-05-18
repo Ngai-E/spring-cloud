@@ -1,0 +1,46 @@
+version: "3.9"
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"  
+    networks:
+      - campaign 
+    volumes:
+      - ./ansible/roles/prometheus/files/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./ansible/roles/configure-prometheus-alertManager/files/rules.yml:/etc/prometheus/rules.yml
+      - /tmp/prometheus/:/prometheus
+    environment:
+      FLASK_DEBUG: "true"
+
+  alertManager:
+    image: prom/alertmanager
+    container_name: alertManager
+    depends_on:
+      - prometheus
+    ports:
+      - "9093:9093"    
+    networks:
+      - campaign 
+    volumes:
+      - ./ansible/roles/configure-prometheus-alertmanager/files/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    environment:
+      FLASK_DEBUG: "true"   
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    networks:
+      - campaign 
+    ports:
+      - "9100:9100" 
+
+  # grafana:
+  #   image: grafana/grafana-enterprise
+  #   ports:
+  #     - "3000:3000" 
+
+networks:
+  campaign:
+    external: true  

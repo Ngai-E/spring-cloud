@@ -1,0 +1,60 @@
+pipeline  {
+environment {
+        version ="${env.BUILD_ID}-${env.GIT_COMMIT}"
+}
+
+agent any
+  stages {
+
+    stage('reading properties from properties file') {
+        steps {
+            script {
+                def props = readProperties file: '/var/jenkins_home/workspace/creds/creds.properties' 
+                
+                env.registryCredential = props.registryCredential
+                env.registryUrl = props.registryUrl
+                env.NETWORK = props.NETWORK
+                env.configDockerImage = props.configDockerImage
+                env.configServiceContainerName  = props.configServiceContainerName 
+                env.eurekaHostZone = props.eurekaHostZone
+                env.configPortMap = props.configPortMap
+            }
+        }
+    }
+
+    stage('build') {
+      agent {
+            docker {
+                reuseNode true
+                image 'maven:3.8.6-jdk-11'
+            }
+      }
+      steps {
+          sh "cd config && mvn clean install -DskipTests"
+      }
+
+    }
+
+    stage('containerise') {
+      steps {
+          script  {
+                      app = docker.build("${configDockerImage}:${version}", "./config")
+                      docker.withRegistry("${registryUrl}", "${registryCredential}") {
+                      pushOut =  app.push()
+                      }
+              }
+
+      }
+
+    }    
+
+    stage('deploy') {
+      steps {
+            sh 'docker container rm -f $configServiceContainerName'
+            sh 'docker container run -d  --network $NETWORK --name $configServiceContainerName -e EUREKA_HOST_ZONE=$eurekaHostZone -p $configPortMap $configDockerImage:${version} '
+                
+        }
+    }
+  }
+
+}

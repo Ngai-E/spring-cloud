@@ -1,0 +1,20 @@
+---
+- hosts: monitoring
+  user: ubuntu
+  become: true
+
+  # Get the environment variables from CircleCI and add to the EC2 instance
+  environment:
+    - AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID')}}"
+    - AWS_DEFAULT_REGION: "{{ lookup('env', 'AWS_DEFAULT_REGION')}}"
+    - AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY')}}"
+    - SLACK_API_URL: "{{ lookup('env', 'SLACK_API_URL')}}"
+    - EMAIL_TO: "{{ lookup('env', 'EMAIL_TO')}}"
+    - EMAIL_FROM: "{{ lookup('env', 'EMAIL_FROM')}}"
+    - EMAIL_HOST: "{{ lookup('env', 'EMAIL_HOST')}}"
+    - EMAIL_API_USER: "{{ lookup('env', 'EMAIL_API_USER')}}"
+    - EMAIL_API_IDENTITY: "{{ lookup('env', 'EMAIL_API_IDENTITY')}}"
+    - EMAIL_API_PASSWORD: "{{ lookup('env', 'EMAIL_API_PASSWORD')}}"
+  roles:
+    - prometheus
+    - configure-prometheus-alertmanager

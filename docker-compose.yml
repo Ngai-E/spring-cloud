@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  config:
+    build: ./config
+    network_mode: host
+    ports:
+      - "56030:56030"  
+    volumes:
+      - ./CONFIGS:/opt/CONFIGS
+    environment:
+      EUREKA_HOST_ZONE: "http://172.20.10.6:56031"
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://172.20.10.6:56030"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  discovery:
+    build: ./discovery
+    depends_on:
+      config:
+        condition: service_healthy
+    ports:
+      - "56031:56031"
+    network_mode: host
+    environment:
+      CONFIG_SERVER_URL: "http://172.20.10.6:56030"   
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://172.20.10.6:56031"]
+      interval: 30s
+      timeout: 30s
+      retries: 3  
+
+  gateway:
+    build: ./gateway
+    network_mode: host 
+    depends_on:
+      discovery:
+        condition: service_healthy
+    ports:
+      - "56032:56032"
+    environment:
+      CONFIG_SERVER_URL: "http://172.20.10.6:56030"
+      EUREKA_HOST_ZONE: "http://172.20.10.6:56031"
+      EUREKA_HOST: "172.20.10.6"
+
+networks:
+  campaign:
+    external: true

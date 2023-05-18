@@ -1,0 +1,27 @@
+global:
+  resolve_timeout: 1m
+  slack_api_url: 'https://hooks.slack.com/services/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'
+
+route:
+  group_by: ['slackInstanceDown']
+  receiver: 'slack-notifications'
+  routes:
+    - group_by: ['EmailInstanceDown']
+      receiver: 'email-me'
+      continue: true
+    - group_by: ['slackInstanceDown']
+      receiver: 'slack-notifications'
+      continue: true
+receivers:
+  - name: 'slack-notifications'
+    slack_configs:
+      - channel: '#monitoring-serivces'
+        send_resolved: true
+  - name: 'email-me'
+    email_configs:
+      - to: asobingai@gmail.com
+        from: asobingai@gmail.com
+        smarthost: smtp.gmail.com:587
+        auth_username: asobingai@gmail.com
+        auth_identity: asobingai@gmail.com
+        auth_password: jnghkoqrnkxmnjre

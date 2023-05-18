@@ -1,0 +1,59 @@
+---
+- name: Download AlertManager
+  get_url: 
+    url: https://github.com/prometheus/alertmanager/releases/download/v0.21.0/alertmanager-0.21.0.linux-amd64.tar.gz
+    dest: ~/alertmanager-0.21.0.linux-amd64.tar.gz
+
+- name: Extract file
+  unarchive:
+    src: ~/alertmanager-0.21.0.linux-amd64.tar.gz
+    dest: ~/
+    remote_src: yes
+
+- name: Move alertmanager file
+  shell: |
+    sudo cp ~/alertmanager-0.21.0.linux-amd64/alertmanager /usr/local/bin
+    sudo cp ~/alertmanager-0.21.0.linux-amd64/amtool /usr/local/bin/
+    sudo mkdir /var/lib/alertmanager
+    rm -rf alertmanager*
+
+- name: Copy alertmanager.yml
+  become: true
+  copy:  
+    src: alertmanager.yml
+    dest: /etc/prometheus/
+
+- name: Configure alertmanager.yml with slack and email settings from environment variables for alerts
+  shell: |
+    # sed -i '' "s/SLACK_API_URL/$SLACK_API_URL/g" /etc/prometheus/alertmanager.yml ## for mac
+    sed -i "s/SLACK_API_URL/$SLACK_API_URL/g" /etc/prometheus/alertmanager.yml 
+    sed -i "s/EMAIL_TO/$EMAIL_TO/g" /etc/prometheus/alertmanager.yml 
+    sed -i "s/EMAIL_FROM/$EMAIL_FROM/g" /etc/prometheus/alertmanager.yml 
+    sed -i "s/EMAIL_HOST/$EMAIL_HOST/g" /etc/prometheus/alertmanager.yml 
+    sed -i "s/EMAIL_API_USER/$EMAIL_API_USER/g" /etc/prometheus/alertmanager.yml 
+    sed -i "s/EMAIL_API_IDENTITY/$EMAIL_API_IDENTITY/g" /etc/prometheus/alertmanager.yml 
+    sed -i "s/EMAIL_API_PASSWORD/$EMAIL_API_PASSWORD/g" /etc/prometheus/alertmanager.yml 
+
+- name: Copy rules.yml 
+  become: true
+  copy:  
+    src: rules.yml
+    dest: /etc/prometheus/
+
+- name: Copy alertmanager.service
+  become: true
+  copy:  
+    src: alertmanager.service
+    dest: /etc/systemd/system
+
+- name: Reload alertmanager to register changes
+  shell: |
+    systemctl daemon-reload
+    sudo systemctl enable alertmanager
+    systemctl start alertmanager
+    systemctl status alertmanager        
+
+- name: Reconfigure and reload prometheus
+  shell: |
+    sudo chown -R prometheus:prometheus /etc/prometheus
+    sudo systemctl restart prometheus    
