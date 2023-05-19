@@ -3,6 +3,9 @@ install:
 	wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
 		chmod +x /bin/hadolint   	
 
+build:
+	mvn clean install -DskitTests
+
 test:
 	mvn test
 
@@ -27,5 +30,10 @@ cRun:
 	# docker contianer stop  cloud-config
 	docker container rm -f cloud-config
 	docker run -d --name cloud-config -e EUREKA_HOST_ZONE=http://cloud-discovery:56031 --network spring-cloud -p 56030:56030 -v /Users/ngaielizabeth/Desktop/projects/next\ billionaire/spring-cloud/CONFIGS:/opt/CONFIGS ngaie/cloud-config
+
+cRun2:
+	# docker contianer stop  cloud-config
+	docker container rm -f cloud-config
+	docker run -d --name cloud-config --network spring-cloud -p 56030:56030 -v ./CONFIGS:/opt/CONFIGS ngaie/cloud-config
 
 all: install lint test cBuild cNetwork cRun

@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 
-FROM openjdk:11
+FROM ghcr.io/graalvm/jdk:ol8-java17-22.3.1
 WORKDIR /cloud-gateway
 
-COPY ./target/gateway-0.0.1-SNAPSHOT.jar /cloud-gateway/gateway.jar
+COPY ./target/gateway-*.jar /cloud-gateway/gateway.jar
 COPY ./src/main/resources/*.properties /cloud-gateway/
 
 EXPOSE 56032

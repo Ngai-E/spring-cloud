@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 
-FROM openjdk:11
+FROM ghcr.io/graalvm/jdk:ol8-java17-22.3.1
 WORKDIR /cloud-config
 
-COPY ./target/discovery-0.0.1-SNAPSHOT.jar /cloud-config/discovery.jar
+COPY ./target/discovery-*.jar /cloud-config/discovery.jar
 COPY ./src/main/resources/*.properties /cloud-config/
 
 EXPOSE 56031

@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 
-FROM openjdk:11
+FROM ghcr.io/graalvm/jdk:ol8-java17-22.3.1
 
 WORKDIR /cloud-config
 
-COPY ./target/cloud-config-0.0.1-SNAPSHOT.jar /cloud-config/config.jar
+COPY ./target/*.jar /cloud-config/config.jar
 COPY  ./src/main/resources/*.properties /cloud-config/
 
 EXPOSE 56030

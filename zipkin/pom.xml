@@ -13,7 +13,6 @@
     <artifactId>zipkin</artifactId>
     <name>zipkin</name>
 
-
     <dependencies>
         <dependency>
             <groupId>io.zipkin.java</groupId>
