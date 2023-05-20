@@ -7,6 +7,8 @@ services:
       - "56030:56030"  
     volumes:
       - ./CONFIGS:/opt/CONFIGS
+    environment:
+      EUREKA_HOST_ZONE: "http://discovery:56031"
     healthcheck:
       test: ["CMD-SHELL", "curl http://localhost:56030/actuator"]
       interval: 30s

@@ -39,12 +39,12 @@
         <module>config</module>
         <module>discovery</module>
         <module>gateway</module>
-        <module>zipkin</module>
     </modules>
 
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2022.0.1</spring-cloud.version>
+        <spring-cloud-starter-eureka.version>1.4.7.RELEASE</spring-cloud-starter-eureka.version>
     </properties>
 
     <dependencyManagement>
