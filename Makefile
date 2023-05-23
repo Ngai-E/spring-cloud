@@ -18,5 +18,7 @@ cNetwork:
 
 run:
 	docker-compose down
+	docker network rm campaign
+	docker network create campaign
 	docker-compose up -d
 all: cBuild cNetwork cRun
