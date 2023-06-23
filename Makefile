@@ -3,7 +3,7 @@ cBuild:
 	#build image	
 	docker build --tag=ngaie/cloud-config ./config
 	docker build --tag=ngaie/cloud-discovery ./discovery
-	docker build --tag=ngaie/cloud-gatewy ./gateway
+	docker build --tag=ngaie/cloud-gateway ./gateway
 
 ls:
 	docker image ls
