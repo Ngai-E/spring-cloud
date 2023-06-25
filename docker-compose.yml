@@ -37,7 +37,7 @@ services:
       discovery:
         condition: service_healthy
     ports:
-      - "56033:56032"
+      - "56032:56032"
     environment:
       CONFIG_SERVER_URL: "http://config:56030"
       EUREKA_HOST_ZONE: "http://discovery:56031"
