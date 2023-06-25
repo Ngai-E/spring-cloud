@@ -41,9 +41,10 @@ services:
     environment:
       CONFIG_SERVER_URL: "http://config:56030"
       EUREKA_HOST_ZONE: "http://discovery:56031"
-      ZIPKIN_URL: "http://172.20.10.6:56031/eureka"
+      ZIPKIN_URL: "http://172.20.10.6:9411"
       EUREKA_HOST: "discovery"
 
 networks:
-  campaign:
+  default:
     external: true
+    name: campaign
